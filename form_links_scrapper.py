@@ -1,8 +1,9 @@
 import requests, json
 
+entities = ["Waren Buffett", "Lisa Su", "Jensen Huang"]
+
 # Form URL = https://www.sec.gov/Archives/edgar/data/ _source.ciks[0].trim('0') / _source.adsh.trim('-') / _source.xsl / _id.find(':')
 # https://www.sec.gov/Archives/edgar/data/1612571/000141588923003904/xslF345X03/form4-03032023_120329.xml
-
 def extract_form_url(json):
     xsl = json["_source"]["xsl"]
     if (xsl is None):
@@ -26,7 +27,6 @@ def scrap():
     'Origin': 'https://www.sec.gov'
     }
 
-    entities = ["Robert Ford", "Waren Buffett", "Lisa Su", "Jensen Huang"]
     result = []
 
     for entity in entities:
@@ -54,15 +54,19 @@ def scrap():
                 if len(files) < 100:
                     break
             else:
-                print(f"\033[31m[ERROR] {entity}:\033[0m {url}")
+                print(f"\033[31m[ERROR {response.status_code}] {entity}:\033[0m {url}")
                 break
         result.append(sub_result)
 
-    print("\033[34m---------------------FINISHED-----------------------\033[0m\n")
+    print("\n\033[34m---------------------FINISHED-----------------------\033[0m\n")
+    total = 0
     for entity in result:
-        print(f"\033[34m{entity["name"]}\033[0m - {len(entity["forms"])} forms")
+        print(f"\033[34m{entity["name"]}\033[0m - {len(entity["forms"])}")
+        total += len(entity["forms"])
+    
+    print(f"\n\033[32mTotal:\033[0m {total}")
 
-    with open("raw_forms.txt", "w") as file:
+    with open("raw_links.json", "w") as file:
         json.dump(result, file)
 
 scrap()
