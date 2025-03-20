@@ -79,15 +79,24 @@ entities = ["Robert Ford"]
 for entity in entities:
     forms_links = []
 
+    page = 1
     while True:
-        # TO-DO - Implement multi page scrap
-        url = f"https://efts.sec.gov/LATEST/search-index?q={entity}&dateRange=all&filter_forms=4&startdt=2001-01-01&enddt=2025-03-19"
-        # &page=2
+        url = f"https://efts.sec.gov/LATEST/search-index?q={entity}&dateRange=all&filter_forms=4&startdt=2001-01-01&enddt=2025-03-19&page={page}"
         response = requests.get(url, headers=headers)
+        page += 1
+        print(url)
 
         if (response.status_code == 200):
             data = response.json()
             files = data["hits"]["hits"]
             for file in files:
                 url = extract_form_url(file)
-                print(url)
+                forms_links.append(url)
+            if len(files) < 100:
+                break
+        else:
+            print("Error fetching: " + url)
+            break
+
+print(forms_links)
+print("Number of forms: " + str(len(forms_link)))
