@@ -1,6 +1,6 @@
 import requests, json, os
 
-path = "raw_links.json"
+path = "raw_data.json"
 
 if not os.path.exists(path):
     print(f"You must run form_links_scrapper.py ({path} does not exist)")
@@ -31,21 +31,28 @@ def sort():
 
                 if (response.status_code == 200):
                     if contains_g_code(response.content):
-                        print(f"\033[32m[G] {entity["name"]}\033[0m {url}")
+                        print(f"\033[32m[G] {entity['name']}\033[0m {url}")
+                        entity["total_g_forms"] += 1
                     else:
-                        print(f"\033[31m[NO G] {entity["name"]}\033[0m {url}")
+                        print(f"\033[31m[NO G] {entity['name']}\033[0m {url}")
                         entity["forms"].remove(url)
                         
                         with open("backup.json", "w") as backup:
                             json.dump(data, backup)
                 else:
-                    print(f"\033[31m[ERROR {response.status_code}] {entity["name"]}:\033[0m {url}")
-        
+                    print(f"\033[31m[ERROR {response.status_code}] {entity['name']}:\033[0m {url}")
+            try:
+                entity["g_form_rate"] = entity["total_g_forms"] / entity["total_extracted_forms"] * 100
+            except ZeroDivisionError:
+                entity["g_form_rate"] = 0
+
+            with open("backup.json", "w") as backup:
+                json.dump(data, backup)
         print("\n\033[34m---------------------FINISHED-----------------------\033[0m\n")
         total = 0
         for entity in data:
-            print(f"\033[34m{entity["name"]}\033[0m - {len(entity["forms"])}")
-            total += len(entity["forms"])
+            print(f"\033[34m{entity['name']}\033[0m - {entity['total_g_forms']} ({entity['g_form_rate']:.2f}%)")
+            total += entity["total_g_forms"]
     
     print(f"\n\033[32mTotal:\033[0m {total}")
 
